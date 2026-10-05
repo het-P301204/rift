@@ -1,0 +1,33 @@
+id: cl-te
+name: CL.TE Desynchronization
+category: Request Smuggling
+protocol: HTTP/1.1
+frontend_framing: content-length
+backend_framing: chunked
+description: >
+  The frontend proxy uses Content-Length to determine where the request body ends.
+  The backend server uses Transfer-Encoding: chunked. Because the frontend consumes
+  more bytes than the chunked terminator specifies, the excess bytes become a prefix
+  that the backend interprets as the beginning of a new HTTP request.
+educational_goal: >
+  Demonstrate that when two tiers disagree on body framing, an attacker can
+  craft a single byte stream that both tiers interpret differently, effectively
+  injecting a request prefix into the backend's connection queue.
+frontend_requirements:
+  - Accepts Content-Length header
+  - Ignores Transfer-Encoding: chunked or forwards both headers
+backend_requirements:
+  - Prefers Transfer-Encoding: chunked over Content-Length
+  - Does not normalize or reject ambiguous framing
+expected_divergence: true
+expected_message_count:
+  frontend: 1
+  backend: 2
+severity: high
+mitigation:
+  title: Normalize ambiguous framing at the proxy
+  description: >
+    Configure the frontend proxy to reject or normalize requests containing both
+    Content-Length and Transfer-Encoding headers. RFC 7230 §3.3.3 specifies that
+    Transfer-Encoding takes precedence, but the safest behavior is rejection.
+  config_change: "reject_ambiguous_framing: true"

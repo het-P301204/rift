@@ -1,0 +1,31 @@
+# Python
+apps/api/venv/
+apps/api/__pycache__/
+apps/api/**/__pycache__/
+apps/api/**/*.pyc
+rift.db
+*.db
+
+# Node
+apps/web/node_modules/
+apps/web/dist/
+apps/web/.vite/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/settings.json
+
+# Claude Code session files
+.claude/launch.json
+*.swp
+
+# Logs
+*.log
+
+# Secrets
+.env
+.env.local

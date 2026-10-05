@@ -1,0 +1,14 @@
+<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- RIFT logo: single stream splitting into two interpretations -->
+  <rect width="32" height="32" rx="6" fill="#171717"/>
+  <!-- Incoming stream -->
+  <line x1="16" y1="2" x2="16" y2="12" stroke="#F5F0E7" stroke-width="2" stroke-linecap="round"/>
+  <!-- Split node -->
+  <circle cx="16" cy="14" r="2" fill="#E85D4A"/>
+  <!-- Left branch (frontend) -->
+  <path d="M16 16 L8 24" stroke="#7FA083" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="8" cy="26" r="2" fill="#7FA083"/>
+  <!-- Right branch (backend) -->
+  <path d="M16 16 L24 24" stroke="#9586B8" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="24" cy="26" r="2" fill="#9586B8"/>
+</svg>

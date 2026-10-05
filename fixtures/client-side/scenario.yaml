@@ -1,0 +1,39 @@
+id: client-side-desync
+name: Client-Side Desynchronization
+category: Browser Desync
+protocol: HTTP/1.1
+frontend_framing: content-length
+backend_framing: cl-zero-ignored
+status: simulated
+description: >
+  Client-Side Desync (CSD) exploits a server that desynchronizes on requests
+  made directly by a browser — without requiring a reverse proxy in the chain.
+  An attacker-controlled page issues a cross-origin request that poisons the
+  victim browser's connection pool, causing a subsequent same-site request to
+  be smuggled into the poisoned connection.
+educational_goal: >
+  Demonstrate that HTTP desync is not limited to proxy-backend boundaries.
+  Direct browser-to-server communication can also produce framing disagreement
+  when the server mishandles certain request patterns, enabling connection
+  pool poisoning.
+simulation_note: >
+  This lab uses a synthetic browser simulator. No real browser credentials
+  are collected or used. All victim session tokens are generated demo values.
+frontend_requirements:
+  - Accepts requests with potential body/framing ambiguity
+  - Reuses connections for performance
+backend_requirements:
+  - Does not fully consume declared body bytes
+  - Allows connection reuse after ambiguous request
+expected_divergence: true
+expected_message_count:
+  frontend: 1
+  backend: 2
+severity: high
+mitigation:
+  title: Close connection after ambiguous request
+  description: >
+    Servers should close (not reuse) connections after processing any request
+    with ambiguous framing. Set Connection: close on responses to requests
+    where Content-Length is declared but the body is not fully consumed.
+  config_change: "close_on_ambiguous: true"

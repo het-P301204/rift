@@ -1,0 +1,34 @@
+id: cl-0
+name: CL.0 Desynchronization
+category: Request Smuggling
+protocol: HTTP/1.1
+frontend_framing: content-length
+backend_framing: cl-zero-ignored
+description: >
+  The request declares Content-Length: 0. The frontend proxy treats this as an
+  empty-body request and forwards it. The backend, however, does not consume the
+  body at all — it treats the declared length as informational and reads the
+  connection stream until the next request boundary, causing any trailing bytes
+  to be interpreted as a new request.
+educational_goal: >
+  Demonstrate that CL.0 is not about malformed syntax — it exploits a legitimate
+  Content-Length value combined with a backend that does not consume the declared
+  body. The interesting property is behavioral disagreement, not header invalidity.
+frontend_requirements:
+  - Forwards Content-Length: 0 as-is
+  - Does not strip trailing bytes from connection
+backend_requirements:
+  - Does not consume body bytes when Content-Length: 0
+  - Reads subsequent bytes as a new request
+expected_divergence: true
+expected_message_count:
+  frontend: 1
+  backend: 2
+severity: medium
+mitigation:
+  title: Strict body consumption on backend
+  description: >
+    Configure the backend to always consume exactly the number of bytes declared
+    in Content-Length, even when the value is 0. Close or reset the connection
+    if trailing bytes appear after a Content-Length: 0 request.
+  config_change: "strict_body_consumption: true"

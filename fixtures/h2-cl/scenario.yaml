@@ -1,0 +1,36 @@
+id: h2-cl
+name: H2.CL Desynchronization
+category: HTTP/2 Downgrade
+protocol: HTTP/2 → HTTP/1.1
+frontend_framing: h2-frames
+backend_framing: content-length
+status: experimental
+description: >
+  An HTTP/2 request is received by the frontend and translated to HTTP/1.1 for
+  the backend. An attacker injects a Content-Length pseudo-header in the HTTP/2
+  request that conflicts with the actual frame payload length. During translation,
+  the injected Content-Length survives into the generated HTTP/1.1 request,
+  while the backend uses it to determine body boundaries — creating a desync.
+educational_goal: >
+  Illustrate how HTTP/2-to-HTTP/1.1 translation introduces framing ambiguity.
+  The key insight is that HTTP/2 uses frame length for body delimitation, making
+  Content-Length a meaningless pseudo-header — but translation layers may copy it.
+frontend_requirements:
+  - Accepts HTTP/2
+  - Translates to HTTP/1.1 for backend
+  - Does not validate Content-Length against H2 frame length
+backend_requirements:
+  - Processes HTTP/1.1 only
+  - Uses Content-Length for body delimitation
+expected_divergence: true
+expected_message_count:
+  frontend: 1
+  backend: 2
+severity: high
+mitigation:
+  title: Strip or recalculate Content-Length during H2 translation
+  description: >
+    During HTTP/2 to HTTP/1.1 translation, always recalculate Content-Length from
+    the actual DATA frame payload length. Never forward a client-supplied
+    Content-Length value directly. Prefer end-to-end HTTP/2 where possible.
+  config_change: "h2_recalculate_content_length: true"

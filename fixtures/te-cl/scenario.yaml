@@ -1,0 +1,33 @@
+id: te-cl
+name: TE.CL Desynchronization
+category: Request Smuggling
+protocol: HTTP/1.1
+frontend_framing: chunked
+backend_framing: content-length
+description: >
+  The frontend proxy uses Transfer-Encoding: chunked to determine request boundaries.
+  The backend server uses Content-Length. An attacker sends a chunked request where
+  the declared Content-Length is smaller than the full chunked payload. The frontend
+  forwards the complete chunked stream; the backend consumes only Content-Length bytes,
+  leaving the remainder as a prefix for the next request on the connection.
+educational_goal: >
+  Show the reverse of CL.TE: when the backend is the stricter parser, the frontend's
+  full stream contains a smuggled suffix that the backend reads as a new request.
+frontend_requirements:
+  - Prefers Transfer-Encoding: chunked
+  - Forwards full chunked body to backend
+backend_requirements:
+  - Uses Content-Length for body delimitation
+  - Does not process Transfer-Encoding header
+expected_divergence: true
+expected_message_count:
+  frontend: 1
+  backend: 2
+severity: high
+mitigation:
+  title: End-to-end Transfer-Encoding consistency
+  description: >
+    Ensure both frontend and backend use the same framing mode. If the backend
+    does not support chunked encoding, the proxy should convert to fixed-length
+    before forwarding, stripping Transfer-Encoding and setting a correct Content-Length.
+  config_change: "normalize_to_content_length: true"

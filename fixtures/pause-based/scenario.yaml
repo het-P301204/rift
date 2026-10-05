@@ -1,0 +1,34 @@
+id: pause-based
+name: Pause-Based Desynchronization
+category: Timing Attack
+protocol: HTTP/1.1
+frontend_framing: content-length
+backend_framing: timeout-dependent
+description: >
+  Pause-based desync exploits timing differences in how tiers handle partially
+  received requests. An attacker sends a request and pauses mid-body. The frontend
+  proxy, with a longer read timeout, waits for completion. The backend, with a
+  shorter timeout, closes its read early and interprets the partially-received
+  body as a complete request — then treats subsequent bytes as a new request.
+educational_goal: >
+  Show that HTTP desynchronization can arise from timing behavior rather than
+  header manipulation. Timeout configuration differences between proxy and backend
+  create a framing boundary that an attacker can exploit through controlled delays.
+timing_controls:
+  write_delay_ms: 100
+  read_delay_ms: 50
+  backend_timeout_ms: 200
+  frontend_timeout_ms: 5000
+  inter_request_pause_ms: 150
+expected_divergence: true
+expected_message_count:
+  frontend: 1
+  backend: 2
+severity: medium
+mitigation:
+  title: Align timeout configuration across all tiers
+  description: >
+    Set identical or near-identical read/write timeouts on all tiers. The backend
+    timeout should be equal to or longer than the frontend timeout, preventing
+    the backend from closing a connection before the proxy is done writing.
+  config_change: "backend_timeout_ms: 5000"

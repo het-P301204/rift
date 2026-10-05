@@ -1,0 +1,43 @@
+id: hardened
+name: Hardened Configuration
+description: >
+  Hardened proxy and backend settings that prevent all implemented desync scenarios.
+  These configurations represent documented defensive normalization applied to
+  the same request streams that produced desynchronization in research mode.
+
+rules:
+  - id: reject_ambiguous_framing
+    applies_to: [cl-te, te-cl]
+    description: >
+      Reject requests containing both Content-Length and Transfer-Encoding headers.
+      RFC 7230 §3.3.3 permits this; production-grade proxies should enforce it.
+    result: Request rejected at proxy — backend never receives the ambiguous stream.
+
+  - id: normalize_h2_headers
+    applies_to: [h2-cl, h2-te]
+    description: >
+      Strip or recalculate Content-Length and remove Transfer-Encoding during
+      HTTP/2 to HTTP/1.1 translation. Always use frame length as the authoritative
+      body size.
+    result: Translation produces a clean HTTP/1.1 request with no injected headers.
+
+  - id: strict_cl_zero
+    applies_to: [cl-0]
+    description: >
+      Backend strictly consumes exactly Content-Length bytes (including 0).
+      Connection is closed if bytes appear after a CL:0 request.
+    result: Trailing bytes never reach the backend request queue.
+
+  - id: close_on_ambiguous
+    applies_to: [client-side-desync]
+    description: >
+      Server closes connection after any request where body consumption is ambiguous.
+      Eliminates connection pool poisoning surface.
+    result: Connection poisoning attempt fails — no reuse of poisoned connection.
+
+  - id: timeout_alignment
+    applies_to: [pause-based]
+    description: >
+      Backend read timeout matches or exceeds frontend timeout. No partial-read
+      boundary is ever created by timeout mismatch.
+    result: Pause-based timing attack produces no framing divergence.

@@ -1,0 +1,36 @@
+id: h2-te
+name: H2.TE Desynchronization
+category: HTTP/2 Downgrade
+protocol: HTTP/2 → HTTP/1.1
+frontend_framing: h2-frames
+backend_framing: chunked
+status: experimental
+description: >
+  An HTTP/2 request contains a Transfer-Encoding: chunked header injected by
+  the attacker. HTTP/2 forbids Transfer-Encoding, but some translation layers
+  forward it into the generated HTTP/1.1 request. The backend, seeing
+  Transfer-Encoding: chunked, parses the body as chunked — even though the
+  actual content was framed by HTTP/2 DATA frames at the frontend.
+educational_goal: >
+  Show that HTTP/2 headers can smuggle HTTP/1.1 framing directives across a
+  protocol translation boundary, causing the backend to apply chunked parsing
+  to data that was never encoded as chunks.
+frontend_requirements:
+  - Accepts HTTP/2
+  - Does not strip forbidden headers (Transfer-Encoding) during translation
+  - Translates to HTTP/1.1 for backend
+backend_requirements:
+  - Processes HTTP/1.1 only
+  - Applies Transfer-Encoding: chunked when header is present
+expected_divergence: true
+expected_message_count:
+  frontend: 1
+  backend: 2
+severity: high
+mitigation:
+  title: Strip Transfer-Encoding during H2 to HTTP/1.1 translation
+  description: >
+    RFC 9113 forbids Transfer-Encoding in HTTP/2. Translation layers must strip
+    any Transfer-Encoding headers from HTTP/2 requests before generating the
+    HTTP/1.1 representation. Reject HTTP/2 requests containing Transfer-Encoding.
+  config_change: "strip_te_on_h2_translation: true"

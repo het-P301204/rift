@@ -1,0 +1,129 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg: #F5F0E7;
+    --color-surface: #FFFFFF;
+    --color-surface-2: #EDE8DF;
+    --color-border: #D4CEC6;
+    --color-text: #171717;
+    --color-text-muted: #666666;
+    --color-text-faint: #999999;
+    --color-accent: #E85D4A;
+    --color-accent-2: #D8AA42;
+    --color-pass: #7FA083;
+    --color-fail: #E85D4A;
+    --color-iris: #9586B8;
+    --color-sidebar: #1A1714;
+    --color-sidebar-text: #E7E0D4;
+    --color-sidebar-muted: #888888;
+    --color-sidebar-hover: #252220;
+    --color-sidebar-active: #2E2B28;
+  }
+
+  .dark {
+    --color-bg: #131210;
+    --color-surface: #1A1714;
+    --color-surface-2: #221F1C;
+    --color-border: #2E2B28;
+    --color-text: #F5F0E7;
+    --color-text-muted: #A0998F;
+    --color-text-faint: #666666;
+    --color-sidebar: #0F0E0C;
+    --color-sidebar-text: #E7E0D4;
+    --color-sidebar-hover: #1A1714;
+    --color-sidebar-active: #221F1C;
+  }
+
+  html {
+    font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-text-faint); }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-control transition-all duration-150 cursor-pointer select-none;
+  }
+  .btn-primary {
+    @apply btn bg-graphite-900 text-ivory-warm hover:bg-graphite-700 dark:bg-ivory-warm dark:text-graphite-900 dark:hover:bg-ivory-soft;
+  }
+  .btn-secondary {
+    @apply btn border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)];
+  }
+  .btn-danger {
+    @apply btn bg-vermilion text-white hover:bg-vermilion-dark;
+  }
+  .btn-ghost {
+    @apply btn text-[var(--color-text-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)];
+  }
+
+  .card {
+    @apply bg-[var(--color-surface)] border border-[var(--color-border)] rounded-card shadow-card;
+  }
+
+  .panel {
+    @apply bg-[var(--color-surface)] border border-[var(--color-border)] rounded-panel shadow-panel;
+  }
+
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .status-dot {
+    @apply inline-block w-2 h-2 rounded-full;
+  }
+  .status-dot-ready { @apply bg-sage; }
+  .status-dot-running { @apply bg-golden animate-pulse; }
+  .status-dot-error { @apply bg-vermilion; }
+  .status-dot-stopped { @apply bg-[var(--color-text-faint)]; }
+
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md;
+  }
+  .badge-pass { @apply badge bg-sage/15 text-sage-dark dark:text-sage; }
+  .badge-fail { @apply badge bg-vermilion/15 text-vermilion-dark dark:text-vermilion; }
+  .badge-warn { @apply badge bg-golden/15 text-golden-dark dark:text-golden; }
+  .badge-info { @apply badge bg-iris/15 text-iris-dark dark:text-iris; }
+  .badge-neutral { @apply badge bg-[var(--color-surface-2)] text-[var(--color-text-muted)]; }
+
+  .label {
+    @apply text-xs font-semibold tracking-widest uppercase text-[var(--color-text-faint)];
+  }
+
+  .divider {
+    @apply border-t border-[var(--color-border)];
+  }
+
+  /* Byte stream semantic highlighting */
+  .byte-header { @apply bg-iris/20 text-iris-dark dark:text-iris; }
+  .byte-body { @apply bg-golden/20 text-golden-dark dark:text-golden; }
+  .byte-chunk-size { @apply bg-plum/20 text-plum-light dark:text-plum-light; }
+  .byte-chunk-data { @apply bg-sage/20 text-sage-dark dark:text-sage; }
+  .byte-trailer { @apply bg-[var(--color-surface-2)] text-[var(--color-text-muted)]; }
+  .byte-smuggled { @apply bg-vermilion/25 text-vermilion-dark dark:text-vermilion border-l-2 border-vermilion; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
