@@ -99,7 +99,7 @@ export function EventTimeline({ events, isLive }: EventTimelineProps) {
 
           return (
             <motion.div
-              key={i}
+              key={`${event.ts}-${event.kind}-${i}`}
               initial={isLive ? { opacity: 0, y: 8 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.18, ease: "easeOut" }}

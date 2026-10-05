@@ -2,18 +2,22 @@ import { useNavigate } from "react-router-dom";
 import { Sun, Moon, Trash2, ExternalLink, Server } from "lucide-react";
 import { useLabStore } from "../store/useLabStore";
 import { useQueryClient } from "@tanstack/react-query";
+import { api } from "../lib/api";
 
 export default function Settings() {
   const { theme, toggleTheme, activeProxy, activeBackend, setProxy, setBackend } = useLabStore();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const clearHistory = () => {
+  const clearHistory = async () => {
     if (confirm("Clear all run history from the database? This cannot be undone.")) {
-      // The backend would need a DELETE /api/runs endpoint for bulk delete
-      // For now, invalidate queries to refresh UI
-      queryClient.invalidateQueries({ queryKey: ["runs"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      try {
+        await api.delete("/api/runs");
+        queryClient.invalidateQueries({ queryKey: ["runs"] });
+        queryClient.invalidateQueries({ queryKey: ["stats"] });
+      } catch (e) {
+        alert("Failed to clear run history. Check that the API is running.");
+      }
     }
   };
 

@@ -27,11 +27,17 @@ def load_all_scenarios() -> list[dict]:
 
 
 def load_scenario(scenario_id: str) -> Optional[dict]:
-    scenario_dir = FIXTURES_DIR / scenario_id
-    yaml_file = scenario_dir / "scenario.yaml"
-    if not yaml_file.exists():
+    try:
+        resolved = (FIXTURES_DIR / scenario_id).resolve()
+        if not resolved.is_relative_to(FIXTURES_DIR.resolve()):
+            return None
+        yaml_file = resolved / "scenario.yaml"
+        if not yaml_file.exists():
+            return None
+        with open(yaml_file, "r", encoding="utf-8") as f:
+            return yaml.safe_load(f)
+    except Exception:
         return None
-    return _load_yaml(yaml_file)
 
 
 def load_hardened_config() -> dict:

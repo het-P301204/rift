@@ -110,6 +110,7 @@ def parse_stream(raw: bytes, tier: str, framing_preference: Optional[str] = None
     all_boundaries: list[Boundary] = []
     offset = 0
     notes: list[str] = []
+    framing = FramingMode.UNKNOWN
 
     while offset < len(raw):
         # Find header/body separator

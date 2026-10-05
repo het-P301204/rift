@@ -68,7 +68,7 @@ def _smuggled_region(frontend: Interpretation, backend: Interpretation) -> Optio
         # Frontend consumed less; remaining bytes are the smuggled prefix
         if frontend.consumed_bytes < len(raw):
             return raw[frontend.consumed_bytes:]
-    elif len(backend.messages) > len(frontend.messages):
+    elif len(frontend.messages) > len(backend.messages):
         if backend.consumed_bytes < len(raw):
             return raw[backend.consumed_bytes:]
     return None

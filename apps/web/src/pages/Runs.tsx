@@ -210,11 +210,14 @@ export default function Runs() {
   }
 
   async function handleBulkDelete() {
-    for (const id of selected) {
-      await deleteMutation.mutateAsync(id);
+    try {
+      for (const id of selected) {
+        await deleteMutation.mutateAsync(id);
+      }
+    } finally {
+      setSelected(new Set());
+      setConfirmBulkDelete(false);
     }
-    setSelected(new Set());
-    setConfirmBulkDelete(false);
   }
 
   const allSelected = filtered.length > 0 && selected.size === filtered.length;

@@ -308,6 +308,8 @@ function EvidenceTab({ runId }: { runId: string }) {
 function NotesTab({ runId, scenarioId }: { runId: string; scenarioId: string }) {
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
   const [draft, setDraft] = useState({ title: "", content: "" });
 
   const { data: notes = [] } = useQuery({
@@ -384,13 +386,13 @@ function NotesTab({ runId, scenarioId }: { runId: string; scenarioId: string }) 
           <div key={note.id} className="card p-4">
             <input
               type="text"
-              defaultValue={note.title}
-              id={`edit-title-${note.id}`}
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
               className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-control px-3 py-2 text-sm text-[var(--color-text)] mb-2 focus:outline-none focus:ring-2 focus:ring-sage/40"
             />
             <textarea
-              defaultValue={note.content}
-              id={`edit-content-${note.id}`}
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
               rows={5}
               className="w-full mono bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-control px-3 py-2 text-sm text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-sage/40 resize-none"
             />
@@ -404,11 +406,9 @@ function NotesTab({ runId, scenarioId }: { runId: string; scenarioId: string }) 
               <button
                 className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5"
                 onClick={() => {
-                  const titleEl = document.getElementById(`edit-title-${note.id}`) as HTMLInputElement;
-                  const contentEl = document.getElementById(`edit-content-${note.id}`) as HTMLTextAreaElement;
                   updateMutation.mutate({
                     id: note.id,
-                    data: { title: titleEl.value, content: contentEl.value },
+                    data: { title: editTitle, content: editContent },
                   });
                 }}
               >
@@ -429,7 +429,11 @@ function NotesTab({ runId, scenarioId }: { runId: string; scenarioId: string }) 
               <div className="flex items-center gap-1">
                 <button
                   className="btn-ghost text-xs px-2 py-1"
-                  onClick={() => setEditingId(note.id)}
+                  onClick={() => {
+                    setEditingId(note.id);
+                    setEditTitle(note.title);
+                    setEditContent(note.content);
+                  }}
                 >
                   Edit
                 </button>

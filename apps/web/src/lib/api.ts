@@ -111,6 +111,7 @@ export function createRunSocket(
     const event: LabEvent = JSON.parse(m.data);
     onEvent(event);
     if (event.kind === "DONE" || event.kind === "ERROR") {
+      ws.onclose = null;  // prevent double-fire of onDone
       onDone();
       ws.close();
     }

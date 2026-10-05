@@ -88,7 +88,7 @@ def build_tecl_stream(body_extra: bytes = b"SMUGGLED") -> bytes:
     """Construct a canonical TE.CL attack stream."""
     chunk_data = b"x=1"
     chunked_body = (
-        hex(len(chunk_data)).encode().lstrip(b"0b") + b"\r\n"
+        format(len(chunk_data), 'x').encode() + b"\r\n"
         + chunk_data + b"\r\n"
         + b"0\r\n\r\n"
         + body_extra

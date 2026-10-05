@@ -16,6 +16,7 @@ import Notes from "./pages/Notes";
 import Compare from "./pages/Compare";
 import Docs from "./pages/Docs";
 import Settings from "./pages/Settings";
+import Reports from "./pages/Reports";
 
 export default function App() {
   const { theme, commandPaletteOpen, setCommandPalette } = useLabStore();
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="/notes" element={<Notes />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/reports" element={<Reports />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route index element={<Navigate to="/dashboard" replace />} />
         </Route>

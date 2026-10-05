@@ -311,10 +311,6 @@ export default function Notes() {
     if (selectedId) deleteMutation.mutate(selectedId);
   }
 
-  const uniqueScenarios = Array.from(
-    new Set((notes as ResearchNote[]).map((n) => n.scenario_id).filter(Boolean)),
-  ) as string[];
-
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Page header */}
@@ -364,11 +360,6 @@ export default function Notes() {
               className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-control px-3 py-2 text-xs text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-sage/40"
             >
               <option value="all">All scenarios</option>
-              {uniqueScenarios.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
               {(scenarios as Scenario[]).map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}

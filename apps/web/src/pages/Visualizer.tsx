@@ -20,7 +20,7 @@ export default function Visualizer() {
   const [mode, setViewMode] = useState<ViewMode>("semantic");
   const [activeTier, setActiveTier] = useState<"both" | "frontend" | "backend">("both");
 
-  const { data: run } = useQuery({
+  const { data: run, isLoading, isError } = useQuery({
     queryKey: ["run", runId],
     queryFn: () => fetchRun(runId!),
     enabled: !!runId,
@@ -28,16 +28,16 @@ export default function Visualizer() {
 
   // Get data from run or from live store events
   const clientSentEvent = run
-    ? run.events.find((e) => e.kind === "CLIENT_SENT")
+    ? (run.events ?? []).find((e) => e.kind === "CLIENT_SENT")
     : activeEvents.find((e) => e.kind === "CLIENT_SENT");
   const proxyEvent = run
-    ? run.events.find((e) => e.kind === "PROXY_PARSED")
+    ? (run.events ?? []).find((e) => e.kind === "PROXY_PARSED")
     : activeEvents.find((e) => e.kind === "PROXY_PARSED");
   const backendEvent = run
-    ? run.events.find((e) => e.kind === "BACKEND_PARSED")
+    ? (run.events ?? []).find((e) => e.kind === "BACKEND_PARSED")
     : activeEvents.find((e) => e.kind === "BACKEND_PARSED");
   const divergenceEvent = run
-    ? run.events.find((e) => e.kind === "DIVERGENCE")
+    ? (run.events ?? []).find((e) => e.kind === "DIVERGENCE")
     : activeEvents.find((e) => e.kind === "DIVERGENCE");
 
   const rawHex = (clientSentEvent?.data?.hex as string) ?? "";
@@ -45,6 +45,9 @@ export default function Visualizer() {
   const backendBoundaries = ((backendEvent?.data?.boundaries as Boundary[]) ?? []);
 
   const MODES: ViewMode[] = ["ascii", "hex", "decoded", "semantic"];
+
+  if (isLoading) return <div className="flex-1 flex items-center justify-center"><div className="text-sm text-[var(--color-text-muted)]">Loading run data…</div></div>;
+  if (isError) return <div className="flex-1 flex items-center justify-center"><div className="text-sm text-vermilion">Failed to load run.</div></div>;
 
   if (!clientSentEvent && !runId) {
     return (

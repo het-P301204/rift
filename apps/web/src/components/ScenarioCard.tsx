@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Play, ExternalLink, Zap, Shield, AlertTriangle } from "lucide-react";
 import type { Scenario } from "../lib/api";
 
@@ -104,14 +105,14 @@ export default function ScenarioCard({ scenario, onRun, compact = false }: Scena
           <Play size={12} />
           Run
         </motion.button>
-        <a
-          href={`/scenarios/${scenario.id}`}
+        <Link
+          to={`/scenarios/${scenario.id}`}
           className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5"
           onClick={(e) => e.stopPropagation()}
         >
           <ExternalLink size={12} />
           Details
-        </a>
+        </Link>
       </div>
     </motion.div>
   );

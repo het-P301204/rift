@@ -1,18 +1,23 @@
 """RIFT — HTTP Desync Research Platform API."""
 from __future__ import annotations
 import json
+import logging
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Optional, AsyncGenerator
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 from db.models import create_db, Run, ResearchNote, Evidence
 from scenarios.loader import load_all_scenarios, load_scenario, load_hardened_config
 from simulation.lab import run_scenario, PROXY_PROFILES, BACKEND_PROFILES
+
+logger = logging.getLogger(__name__)
 
 # ── Database ──────────────────────────────────────────────────────────────────
 engine, SessionLocal = create_db("rift.db")
@@ -49,7 +54,7 @@ class RunRequest(BaseModel):
     proxy: str = "nginx"
     backend: str = "flask"
     hardened: bool = False
-    timing_ms: int = 0
+    timing_ms: int = Field(default=0, ge=0, le=5000)
 
 
 class NoteCreate(BaseModel):
@@ -106,7 +111,7 @@ def get_topology():
 
 # ── Runs ──────────────────────────────────────────────────────────────────────
 @app.get("/api/runs")
-def list_runs(limit: int = 50):
+def list_runs(limit: int = Query(default=50, ge=1, le=500)):
     db = SessionLocal()
     try:
         runs = db.query(Run).order_by(Run.started_at.desc()).limit(limit).all()
@@ -125,6 +130,15 @@ def get_run(run_id: str):
         return _run_to_dict(run)
     finally:
         db.close()
+
+
+@app.delete("/api/runs")
+def delete_all_runs(db: Session = Depends(get_db)):
+    db.query(Evidence).delete()
+    db.query(ResearchNote).filter(ResearchNote.run_id != None).delete()
+    db.query(Run).delete()
+    db.commit()
+    return {"deleted": True}
 
 
 @app.delete("/api/runs/{run_id}")
@@ -167,13 +181,12 @@ def _run_to_dict(r: Run) -> dict:
 def get_stats():
     db = SessionLocal()
     try:
-        runs = db.query(Run).all()
-        total = len(runs)
-        passed = sum(1 for r in runs if r.status == "pass")
-        failed = sum(1 for r in runs if r.status == "fail")
-        errors = sum(1 for r in runs if r.status == "error")
-        desync = sum(1 for r in runs if r.divergence)
-        hardened_blocked = sum(1 for r in runs if r.hardened_blocked)
+        total = db.query(func.count(Run.id)).scalar() or 0
+        passed = db.query(func.count(Run.id)).filter(Run.status == "pass").scalar() or 0
+        failed = db.query(func.count(Run.id)).filter(Run.status == "fail").scalar() or 0
+        errors = db.query(func.count(Run.id)).filter(Run.status == "error").scalar() or 0
+        desync = db.query(func.count(Run.id)).filter(Run.divergence == True).scalar() or 0
+        hardened_blocked = db.query(func.count(Run.id)).filter(Run.hardened_blocked == True).scalar() or 0
         return {
             "total": total,
             "passed": passed,
@@ -291,6 +304,7 @@ def get_evidence(run_id: str):
 @app.websocket("/ws/run")
 async def websocket_run(ws: WebSocket):
     await ws.accept()
+    db = None
     try:
         raw = await ws.receive_text()
         req = RunRequest(**json.loads(raw))
@@ -372,15 +386,18 @@ async def websocket_run(ws: WebSocket):
             ))
 
         db.commit()
-        db.close()
 
     except WebSocketDisconnect:
         pass
     except Exception as e:
         try:
-            await ws.send_text(json.dumps({"kind": "ERROR", "message": str(e), "data": {}}))
+            logger.exception("WebSocket run error")
+            await ws.send_text(json.dumps({"kind": "ERROR", "message": "Internal engine error — check server logs", "data": {}}))
         except Exception:
             pass
+    finally:
+        if db is not None:
+            db.close()
 
 
 @app.get("/api/health")
